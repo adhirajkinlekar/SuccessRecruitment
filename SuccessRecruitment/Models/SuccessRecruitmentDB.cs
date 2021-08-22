@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Configuration;
 
 #nullable disable
 
@@ -8,14 +10,24 @@ namespace SuccessRecruitment.Models
 {
     public partial class SuccessRecruitmentDB : DbContext
     {
+        private static readonly IConfiguration _configuration;
+
+        static SuccessRecruitmentDB()
+        {
+            // static constructor is used to initialize any static data, or to perform a particular action that needs to be performed only once. It is called automatically before the first instance is created or any static members are referenced
+            _configuration = new ConfigurationBuilder()
+           .SetBasePath(Directory.GetCurrentDirectory())
+           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+           .Build();
+        }
         public SuccessRecruitmentDB()
         {
+          
         }
 
         public SuccessRecruitmentDB(DbContextOptions<SuccessRecruitmentDB> options)
             : base(options)
         {
-            var a = 1;
         }
 
         public virtual DbSet<TblJob> TblJobs { get; set; }
@@ -27,9 +39,7 @@ namespace SuccessRecruitment.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var a = 1;
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=LAPTOP-R6JDO6QE;Database=Success-Recruitment;Trusted_Connection=True;user id=sa;password=123456");
+                optionsBuilder.UseSqlServer(_configuration["ConnectionStrings:DefaultConnection"]);
             }
         }
 
