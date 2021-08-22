@@ -6,25 +6,58 @@ using System.Linq;
 using System.Threading.Tasks;
 using SuccessRecruitment.Models;
 using Microsoft.EntityFrameworkCore;
-
+using SuccessRecruitment.Services;
+using SuccessRecruitment.DataTransferObjects.JobDataTransferObjects;
 namespace SuccessRecruitment.Controllers
 {
     [ApiController]
     [Route("[controller]")]
     public class JobController : ControllerBase
     {
-        private SuccessRecruitmentDB _db = null;
+        JobService _repo = null;
         public JobController()
         {
-            _db = new SuccessRecruitmentDB();
+            _repo = new JobService();
         }
 
         [HttpGet]
-        [Route("AllJobs")]
-        public ActionResult Get()
+        [Route("GetAllJobs")]
+        public async Task<IActionResult> GetAllJobs()
         {
-
-            return Ok();
+            try
+            {
+                return Ok(await _repo.GetAllJobs());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost]
+        [Route("PublishJob")]
+        public async Task<IActionResult> PublishJob(PublishJob newJob)
+        {
+            try
+            {
+                return Ok(await _repo.PublishJob(newJob));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPut]
+        [Route("UpdateJob")]
+        public async Task<IActionResult> UpdateJob(UpdateJob updatedJob)
+        {
+            try
+            {
+                return Ok(await _repo.UpdateJob(updatedJob));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
