@@ -56,7 +56,7 @@ namespace SuccessRecruitment.Services.Auth
                 
                 if(newUser.UserName == null || newUser.Email == null)
                 {
-                    throw new Exception("Username and Email are mandatory");
+                    throw new Exception("Username and Email are required");
                 }
 
                 bool userExists = await _db.Tblusers.AnyAsync(x => x.UserName == newUser.UserName && x.Email == newUser.Email && !x.IsArchived);
@@ -65,7 +65,6 @@ namespace SuccessRecruitment.Services.Auth
                 {
                     throw new Exception("User Already exists. Please Log in");
                 }
-
                 else
                 {
                     User = (await _db.Tblusers.AddAsync(new Tbluser
