@@ -97,7 +97,7 @@ namespace SuccessRecruitment.Models
 
                 entity.Property(e => e.PostedBy).HasColumnName("postedBy");
 
-                entity.HasOne(d => d.PostedByNavigation)
+                entity.HasOne(d => d.User)
                     .WithMany(p => p.TblJobs)
                     .HasForeignKey(d => d.PostedBy)
                     .OnDelete(DeleteBehavior.ClientSetNull)
