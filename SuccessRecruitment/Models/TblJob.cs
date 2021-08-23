@@ -19,6 +19,6 @@ namespace SuccessRecruitment.Models
         public DateTime? ModifiedDate { get; set; }
         public bool IsArchived { get; set; }
 
-        public virtual Tbluser PostedByNavigation { get; set; }
+        public virtual Tbluser User { get; set; }
     }
 }
