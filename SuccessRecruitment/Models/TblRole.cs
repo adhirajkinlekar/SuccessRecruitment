@@ -14,8 +14,8 @@ namespace SuccessRecruitment.Models
 
         public int RoleId { get; set; }
         public string RoleName { get; set; }
-        public Guid? CreatedBy { get; set; }
-        public DateTime? CreatedDate { get; set; }
+        public Guid CreatedBy { get; set; }
+        public DateTime CreatedDate { get; set; }
         public Guid? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public bool IsArchived { get; set; }
