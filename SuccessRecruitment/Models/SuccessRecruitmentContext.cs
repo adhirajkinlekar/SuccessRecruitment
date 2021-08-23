@@ -107,16 +107,14 @@ namespace SuccessRecruitment.Models
             modelBuilder.Entity<TblLogin>(entity =>
             {
                 entity.HasKey(e => e.LoginId)
-                    .HasName("PK__tblLogin__1F5EF4CF891F09DC");
+                    .HasName("PK__tblLogin__1F5EF4CFEC8CF5A9");
 
                 entity.ToTable("tblLogin");
 
-                entity.HasIndex(e => e.UserId, "UQ__tblLogin__CB9A1CFE400E1792")
+                entity.HasIndex(e => e.UserId, "UQ__tblLogin__CB9A1CFE83F89488")
                     .IsUnique();
 
-                entity.Property(e => e.LoginId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("loginId");
+                entity.Property(e => e.LoginId).HasColumnName("loginId");
 
                 entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
 
@@ -145,8 +143,7 @@ namespace SuccessRecruitment.Models
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.TblLogin)
                     .HasForeignKey<TblLogin>(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__tblLogin__userId__6E01572D");
+                    .HasConstraintName("FK__tblLogin__userId__114A936A");
             });
 
             modelBuilder.Entity<TblRole>(entity =>
