@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SuccessRecruitment.Models;
+using System;
 
 namespace SuccessRecruitment.DataTransferObjects.Auth
 {
@@ -24,6 +25,11 @@ namespace SuccessRecruitment.DataTransferObjects.Auth
        public byte[] PasswordSalt { get; set; }
        public Guid CreatedBy { get; set; }
        public DateTime CreatedDate { get; set; }
+    }
+    public class ValidUserDTO
+    {
+        public string Token { get; set; }
+        public Tbluser UserDetails { get; set; }
     }
 }
 

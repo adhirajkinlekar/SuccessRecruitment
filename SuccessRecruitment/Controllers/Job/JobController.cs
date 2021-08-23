@@ -3,18 +3,21 @@ using System;
 using System.Threading.Tasks;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.DataTransferObjects.JobDataTransferObjects;
+using Microsoft.AspNetCore.Authorization;
+
 namespace SuccessRecruitment.Controllers
 {
     [ApiController]
     [Route("[controller]")]
     public class JobController : ControllerBase
     {
-        JobService _repo = null;
-        public JobController()
-        {
-            _repo = new JobService();
-        }
+        private readonly IJobService _repo;
 
+        public JobController(IJobService jobService)
+        {
+            _repo = jobService;
+        }
+        [AllowAnonymous]
         [HttpGet]
         [Route("GetAllJobs")]
         public async Task<IActionResult> GetAllJobs()
@@ -28,6 +31,8 @@ namespace SuccessRecruitment.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [Authorize]
         [HttpPost]
         [Route("PublishJob")]
         public async Task<IActionResult> PublishJob(PublishJob newJob)
@@ -41,6 +46,8 @@ namespace SuccessRecruitment.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [Authorize]
         [HttpPut]
         [Route("UpdateJob")]
         public async Task<IActionResult> UpdateJob(UpdateJob updatedJob)

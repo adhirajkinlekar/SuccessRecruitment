@@ -17,11 +17,11 @@ namespace SuccessRecruitment.Services
 
     public class JobService : IJobService
     {
-        RecruitmentDB _db = null;
+        private readonly RecruitmentDB _db;
 
-        public JobService()
+        public JobService(RecruitmentDB database)
         {
-            _db = new RecruitmentDB();
+            _db = database;
         }
 
         public async Task<List<TblJob>> GetAllJobs()
@@ -35,7 +35,6 @@ namespace SuccessRecruitment.Services
             {
                 throw new Exception(ex.Message);
             }
-
         }
 
         public async Task<bool> PublishJob(PublishJob newJob)

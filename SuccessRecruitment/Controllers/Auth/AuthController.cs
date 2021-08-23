@@ -10,11 +10,11 @@ namespace SuccessRecruitment.Controllers.Auth
     [Route("[controller]")]
     public class AuthController : ControllerBase
     {
-        AuthService _repo = null;
+        private readonly IAuthService _repo;
 
-       public AuthController()
+        public AuthController(IAuthService authService)
         {
-            _repo = new AuthService();
+            _repo = authService;
         }
 
         [HttpPost]
@@ -23,6 +23,8 @@ namespace SuccessRecruitment.Controllers.Auth
         {
             try
             {
+               newUser.Email = newUser.Email.Trim();
+               newUser.UserName = newUser.UserName.Trim();
                return Ok(await _repo.Register(newUser));
             }
             catch(Exception ex)
@@ -37,6 +39,7 @@ namespace SuccessRecruitment.Controllers.Auth
         {
             try
             {
+                user.UserName = user.UserName.Trim();
                 return Ok(await _repo.Login(user));
             }
             catch (Exception ex)

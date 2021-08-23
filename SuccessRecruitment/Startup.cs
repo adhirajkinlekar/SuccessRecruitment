@@ -1,11 +1,17 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SuccessRecruitment.Models;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.Services.Auth;
+using System.Text;
 using System.Text.Json.Serialization;
 
 namespace SuccessRecruitment
@@ -22,14 +28,27 @@ namespace SuccessRecruitment
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<RecruitmentDB>(x => x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddControllers()
                 // Following line has been added to avoid
                 //System.Text.Json.JsonException: A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles.
                 .AddJsonOptions(x =>  x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 
             services.AddScoped<IJobService, JobService>();
-            services.AddScoped<IAuthService, AuthService>();
-
+            services.AddScoped<IAuthService, AuthService>(); 
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddCors();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+           .AddJwtBearer(options =>
+           {
+               options.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidateIssuerSigningKey = true,
+                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"])),
+                   ValidateIssuer = false,
+                   ValidateAudience = false
+               };
+           });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SuccessRecruitment", Version = "v1" });
@@ -49,6 +68,11 @@ namespace SuccessRecruitment
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            //By using authentication we can restrict access to the controller or methods by using Authorize attribute to the controller. This way only the user with the JSON Web token can access the API.
+            app.UseAuthentication();
+
+            app.UseAuthorization();
 
             app.UseAuthorization();
 
