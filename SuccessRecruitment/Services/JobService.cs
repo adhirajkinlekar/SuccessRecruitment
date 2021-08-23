@@ -17,11 +17,11 @@ namespace SuccessRecruitment.Services
 
     public class JobService : IJobService
     {
-        SuccessRecruitmentDB _db = null;
+        RecruitmentDB _db = null;
 
         public JobService()
         {
-            _db = new SuccessRecruitmentDB();
+            _db = new RecruitmentDB();
         }
 
         public async Task<List<TblJob>> GetAllJobs()
@@ -62,8 +62,8 @@ namespace SuccessRecruitment.Services
                         CreatedDate = DateTime.Now
                     });
 
-                   await _db.SaveChangesAsync();
-                   isCreated = true;
+                    await _db.SaveChangesAsync();
+                    isCreated = true;
                 }
                 return isCreated;
             }

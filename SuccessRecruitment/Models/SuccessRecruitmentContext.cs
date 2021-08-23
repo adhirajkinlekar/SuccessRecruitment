@@ -8,11 +8,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace SuccessRecruitment.Models
 {
-    public partial class SuccessRecruitmentDB : DbContext
+    public partial class RecruitmentDB : DbContext
     {
         private static readonly IConfiguration _configuration;
 
-        static SuccessRecruitmentDB()
+        static RecruitmentDB()
         {
             // static constructor is used to initialize any static data, or to perform a particular action that needs to be performed only once. It is called automatically before the first instance is created or any static members are referenced
             _configuration = new ConfigurationBuilder()
@@ -20,17 +20,18 @@ namespace SuccessRecruitment.Models
            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
            .Build();
         }
-        public SuccessRecruitmentDB()
+
+        public RecruitmentDB()
         {
-          
         }
 
-        public SuccessRecruitmentDB(DbContextOptions<SuccessRecruitmentDB> options)
+        public RecruitmentDB(DbContextOptions<RecruitmentDB> options)
             : base(options)
         {
         }
 
         public virtual DbSet<TblJob> TblJobs { get; set; }
+        public virtual DbSet<TblLogin> TblLogins { get; set; }
         public virtual DbSet<TblRole> TblRoles { get; set; }
         public virtual DbSet<TblUserRole> TblUserRoles { get; set; }
         public virtual DbSet<Tbluser> Tblusers { get; set; }
@@ -39,7 +40,7 @@ namespace SuccessRecruitment.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(_configuration["ConnectionStrings:DefaultConnection"]);
+                optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
             }
         }
 
@@ -96,11 +97,56 @@ namespace SuccessRecruitment.Models
 
                 entity.Property(e => e.PostedBy).HasColumnName("postedBy");
 
-                entity.HasOne(d => d.User)
+                entity.HasOne(d => d.PostedByNavigation)
                     .WithMany(p => p.TblJobs)
                     .HasForeignKey(d => d.PostedBy)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__tblJobs__postedB__5070F446");
+            });
+
+            modelBuilder.Entity<TblLogin>(entity =>
+            {
+                entity.HasKey(e => e.LoginId)
+                    .HasName("PK__tblLogin__1F5EF4CF891F09DC");
+
+                entity.ToTable("tblLogin");
+
+                entity.HasIndex(e => e.UserId, "UQ__tblLogin__CB9A1CFE400E1792")
+                    .IsUnique();
+
+                entity.Property(e => e.LoginId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("loginId");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("createdDate");
+
+                entity.Property(e => e.IsArchived).HasColumnName("isArchived");
+
+                entity.Property(e => e.ModifiedBy).HasColumnName("modifiedBy");
+
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("modifiedDate");
+
+                entity.Property(e => e.PasswordHash)
+                    .IsRequired()
+                    .HasColumnName("passwordHash");
+
+                entity.Property(e => e.PasswordSalt)
+                    .IsRequired()
+                    .HasColumnName("passwordSalt");
+
+                entity.Property(e => e.UserId).HasColumnName("userId");
+
+                entity.HasOne(d => d.User)
+                    .WithOne(p => p.TblLogin)
+                    .HasForeignKey<TblLogin>(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__tblLogin__userId__6E01572D");
             });
 
             modelBuilder.Entity<TblRole>(entity =>
