@@ -36,14 +36,16 @@ namespace SuccessRecruitment.Services.Auth
         {
             try
             {
-               
                 ValidUserDTO validUser = new ValidUserDTO();
-                validUser.UserDetails = await _db.Tblusers.Include(x => x.TblLogin).Where(u => u.UserName == user.UserName).FirstOrDefaultAsync();
-
+                validUser.UserDetails = await _db.Tblusers.Include(x => x.TblLogin).Include(x=> x.TblUserRoles).Where(u => u.UserName == user.UserName).FirstOrDefaultAsync();
+                
                 if (validUser.UserDetails == null)
                 {
                     throw new Exception("Incorrect Username or Password");
                 }
+
+                List<int> roleIds = validUser.UserDetails.TblUserRoles.Select(x => x.RoleId).ToList();
+                List<string> userRoles = await _db.TblRoles.Where(x => roleIds.Contains(x.RoleId) && !x.IsArchived).Select(x=> x.RoleName).ToListAsync();
 
                 HMACSHA512 hmac = new HMACSHA512(validUser.UserDetails.TblLogin.PasswordSalt);
 
@@ -57,7 +59,7 @@ namespace SuccessRecruitment.Services.Auth
                     }
                 }
 
-                validUser.Token = CreateToken(validUser.UserDetails);
+                validUser.Token = CreateToken(validUser.UserDetails, userRoles);
 
                 if (validUser.Token == null)
                 {
@@ -79,9 +81,16 @@ namespace SuccessRecruitment.Services.Auth
             {
                 ValidUserDTO validUser = new ValidUserDTO();
                 
-                if(newUser.UserName == null || newUser.Email == null)
+                if(newUser.UserName == null || newUser.Email == null || newUser.Password == null || newUser.RoleIds.Count == 0)
                 {
-                    throw new Exception("Username and Email are required");
+                    throw new Exception("User details and role are required");
+                }
+
+                List<TblRole> roles = await _db.TblRoles.Where(x => newUser.RoleIds.Contains(x.RoleId)).ToListAsync();
+
+                if(roles.Any(x=> x.IsArchived))
+                {
+                    throw new Exception("One or more selected roles have been archived. Please contact system administrator");
                 }
 
                 bool userExists = await _db.Tblusers.AnyAsync(x => x.UserName == newUser.UserName.Trim() && x.Email == newUser.Email.Trim() && !x.IsArchived);
@@ -112,14 +121,20 @@ namespace SuccessRecruitment.Services.Auth
                         CreatedBy = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060"),
                         CreatedDate = DateTime.Now
                     });
+
+                     foreach(var roleId in roles.Select(x=> x.RoleId).ToList())
+                    {
+                        validUser.UserDetails.TblUserRoles.Add((await _db.TblUserRoles.AddAsync(new TblUserRole
+                        {
+                            UserId = validUser.UserDetails.UserId,
+                            RoleId = roleId,
+                            CreatedBy = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060"),
+                            CreatedDate = DateTime.Now
+                        })).Entity);
+                    }
                 }
 
-                validUser.Token = CreateToken(validUser.UserDetails);
-
-                if (validUser.Token == null)
-                {
-                    throw new Exception("Unable to create Token. Please contact system administrator");
-                }
+                validUser.Token = CreateToken(validUser.UserDetails, roles.Select(x=> x.RoleName).ToList());
 
                 await _db.SaveChangesAsync();
 
@@ -132,28 +147,38 @@ namespace SuccessRecruitment.Services.Auth
          
         }
 
-        private string CreateToken(Tbluser user)
+        private string CreateToken(Tbluser user, List<string> userRoles)
         {
-             List<Claim> claims = new List<Claim>
+            try
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                //new Claim(ClaimTypes.Role, user.Role)
-            };
-
-
-            SigningCredentials creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
-
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+                List<Claim> claims = new List<Claim>
             {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString())
             };
+                foreach (var role in userRoles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+           //     claims.Add(new Claim(type: "Page", value: curUser.UserGroupID.ToString()));
+                SigningCredentials creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+                SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(claims),
+                    Expires = DateTime.Now.AddDays(1),
+                    SigningCredentials = creds
+                };
 
-            return tokenHandler.WriteToken(token);
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+
+                return tokenHandler.WriteToken(token);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
     }
 }

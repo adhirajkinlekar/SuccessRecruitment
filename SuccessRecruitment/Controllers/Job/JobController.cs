@@ -35,7 +35,7 @@ namespace SuccessRecruitment.Controllers
             }
         }
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Recruiter")]
         [Route("GetJobsByUser")]
         public async Task<IActionResult> GetJobsByUser()
         {

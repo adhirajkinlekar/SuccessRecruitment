@@ -37,6 +37,5 @@ namespace SuccessRecruitment.Controllers
         //        throw new Exception(ex.Message);
         //    }
         //}
-
     }
 }

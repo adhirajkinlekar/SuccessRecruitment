@@ -23,9 +23,11 @@ namespace SuccessRecruitment.Controllers.Auth
         {
             try
             {
-               newUser.Email = newUser.Email.Trim();
-               newUser.UserName = newUser.UserName.Trim();
+               newUser.Email = newUser.Email?.Trim();
+               newUser.UserName = newUser.UserName?.Trim();
+               newUser.Password = newUser.Password?.Trim();
                return Ok(await _repo.Register(newUser));
+
             }
             catch(Exception ex)
             {
