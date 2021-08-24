@@ -8,7 +8,7 @@ namespace SuccessRecruitment.Controllers.Auth
 {
     [ApiController]
     [Route("[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController : RecuritmentControllerBase
     {
         private readonly IAuthService _repo;
 

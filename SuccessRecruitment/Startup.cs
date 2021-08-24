@@ -36,7 +36,6 @@ namespace SuccessRecruitment
 
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<IAuthService, AuthService>(); 
-            services.AddScoped<ITokenService, TokenService>();
             services.AddCors();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
            .AddJwtBearer(options =>
@@ -49,6 +48,7 @@ namespace SuccessRecruitment
                    ValidateAudience = false
                };
            });
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SuccessRecruitment", Version = "v1" });

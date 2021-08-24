@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SuccessRecruitment.DataTransferObjects.JobDataTransferObjects;
 using SuccessRecruitment.Models;
@@ -13,15 +15,17 @@ namespace SuccessRecruitment.Services
         Task<List<TblJob>> GetAllJobs();
         Task<bool> PublishJob(PublishJob newJob);
         Task<bool> UpdateJob(UpdateJob updatedJob);
+        Task<List<TblJob>> GetJobsByUser();
     }
 
     public class JobService : IJobService
     {
         private readonly RecruitmentDB _db;
-
-        public JobService(RecruitmentDB database)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public JobService(RecruitmentDB database , IHttpContextAccessor IHttpContextAccessor)
         {
             _db = database;
+            _httpContextAccessor = IHttpContextAccessor;
         }
 
         public async Task<List<TblJob>> GetAllJobs()
@@ -36,6 +40,20 @@ namespace SuccessRecruitment.Services
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<TblJob>> GetJobsByUser()
+        {
+            try
+            {
+                var jobsPostedByUser = await _db.TblJobs.Where(x => x.PostedBy == GetUserId() && !x.IsArchived).ToListAsync();
+                return jobsPostedByUser;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
 
         public async Task<bool> PublishJob(PublishJob newJob)
         {
@@ -85,7 +103,7 @@ namespace SuccessRecruitment.Services
                     throw new Exception("Selected job doesn't exist. Please contact support team");
                 }
                 else
-                {
+                { 
                     job.JobTitle = updatedJob.JobTitle;
                     job.JobDescription = updatedJob.JobDescription;
                     job.Field = updatedJob.Field;
@@ -104,5 +122,7 @@ namespace SuccessRecruitment.Services
                 throw new Exception(ex.Message);
             }
         }
+
+        private Guid GetUserId() => Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
     }
 }

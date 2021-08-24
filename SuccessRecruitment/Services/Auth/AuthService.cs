@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -6,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using SuccessRecruitment.DataTransferObjects.Auth;
 using SuccessRecruitment.Models;
 
@@ -20,11 +24,12 @@ namespace SuccessRecruitment.Services.Auth
     public class AuthService : IAuthService
     {
         private readonly RecruitmentDB _db;
-        private readonly ITokenService _TokenService;
-        public AuthService(RecruitmentDB database, ITokenService tokenService)
+        private readonly SymmetricSecurityKey _key;
+
+        public AuthService(RecruitmentDB database, IConfiguration config)
         { 
             _db = database;
-            _TokenService = tokenService;
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
         }
 
         public async Task<ValidUserDTO> Login(UserLoginDTO user)
@@ -52,13 +57,13 @@ namespace SuccessRecruitment.Services.Auth
                     }
                 }
 
-                validUser.Token = _TokenService.createToken(validUser.UserDetails.UserName);
+                validUser.Token = CreateToken(validUser.UserDetails);
 
                 if (validUser.Token == null)
                 {
                     throw new Exception("Unable to create Token. Please contact system administrator");
                 }
-
+               
                 return validUser;
             }
             catch (Exception ex)
@@ -109,7 +114,7 @@ namespace SuccessRecruitment.Services.Auth
                     });
                 }
 
-                validUser.Token = _TokenService.createToken(validUser.UserDetails.UserName);
+                validUser.Token = CreateToken(validUser.UserDetails);
 
                 if (validUser.Token == null)
                 {
@@ -125,6 +130,30 @@ namespace SuccessRecruitment.Services.Auth
                 throw new Exception(ex.Message);
             }
          
+        }
+
+        private string CreateToken(Tbluser user)
+        {
+             List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                //new Claim(ClaimTypes.Role, user.Role)
+            };
+
+
+            SigningCredentials creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
+
+            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = creds
+            };
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
 }
