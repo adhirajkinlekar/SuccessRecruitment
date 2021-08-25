@@ -37,15 +37,13 @@ namespace SuccessRecruitment.Services.Auth
             try
             {
                 ValidUserDTO validUser = new ValidUserDTO();
-                validUser.UserDetails = await _db.Tblusers.Include(x => x.TblLogin).Include(x=> x.TblUserRoles).Where(u => u.UserName == user.UserName).FirstOrDefaultAsync();
+                validUser.UserDetails = await _db.Tblusers.Include(x => x.TblLogin).Include(x=> x.TblUserRoles).Include(x=> x.TblUserPages).Where(u => u.UserName == user.UserName).FirstOrDefaultAsync();
                 
                 if (validUser.UserDetails == null)
                 {
                     throw new Exception("Incorrect Username or Password");
                 }
 
-                List<int> roleIds = validUser.UserDetails.TblUserRoles.Select(x => x.RoleId).ToList();
-                List<string> userRoles = await _db.TblRoles.Where(x => roleIds.Contains(x.RoleId) && !x.IsArchived).Select(x=> x.RoleName).ToListAsync();
 
                 HMACSHA512 hmac = new HMACSHA512(validUser.UserDetails.TblLogin.PasswordSalt);
 
@@ -59,7 +57,12 @@ namespace SuccessRecruitment.Services.Auth
                     }
                 }
 
-                validUser.Token = CreateToken(validUser.UserDetails, userRoles);
+                List<int> roleIds = validUser.UserDetails.TblUserRoles.Select(x => x.RoleId).ToList();
+                List<int> pageIds = validUser.UserDetails.TblUserPages.Select(x => x.PageId).ToList();
+                List<string> userRoles = await _db.TblUserRoles.Include(x => x.TblRole).Where(x => roleIds.Contains(x.RoleId) && !x.IsArchived).Select(x => x.TblRole.RoleName).ToListAsync();
+                List<string> userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => pageIds.Contains(x.PageId) && !x.IsArchived).Select(x => x.TblPage.PageName).ToListAsync();
+                //try to get all these results in 1 query
+                validUser.Token = CreateToken(validUser.UserDetails, userRoles, userPages);
 
                 if (validUser.Token == null)
                 {
@@ -87,8 +90,8 @@ namespace SuccessRecruitment.Services.Auth
                 }
 
                 List<TblRole> roles = await _db.TblRoles.Where(x => newUser.RoleIds.Contains(x.RoleId)).ToListAsync();
-
-                if(roles.Any(x=> x.IsArchived))
+                List<TblPage> pages = new List<TblPage>();
+                if (roles.Any(x=> x.IsArchived))
                 {
                     throw new Exception("One or more selected roles have been archived. Please contact system administrator");
                 }
@@ -107,7 +110,7 @@ namespace SuccessRecruitment.Services.Auth
                         UserName = newUser.UserName,
                         Email = newUser.Email,
                         Phone = newUser.Phone,
-                        CreatedBy = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060"),
+                        CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
                         CreatedDate = DateTime.Now
                     })).Entity;
 
@@ -118,23 +121,42 @@ namespace SuccessRecruitment.Services.Auth
                         UserId = validUser.UserDetails.UserId,
                         PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(newUser.Password)),
                         PasswordSalt = hmac.Key,
-                        CreatedBy = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060"),
+                        CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
                         CreatedDate = DateTime.Now
                     });
 
-                     foreach(var roleId in roles.Select(x=> x.RoleId).ToList())
+                    List<int> roleIds = roles.Select(x => x.RoleId).ToList();
+                    
+                    foreach (var roleId in roleIds)
                     {
                         validUser.UserDetails.TblUserRoles.Add((await _db.TblUserRoles.AddAsync(new TblUserRole
                         {
                             UserId = validUser.UserDetails.UserId,
                             RoleId = roleId,
-                            CreatedBy = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060"),
+                            CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
+                            CreatedDate = DateTime.Now
+                        })).Entity);
+                    }
+
+                    bool IsExternal = roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate");
+
+                    pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal).Select(x=> x.TblPage).ToListAsync();
+
+                    List<int> pageIds = pages.Select(x => x.PageId).ToList();
+
+                    foreach (var pageId in pageIds)
+                    {
+                        validUser.UserDetails.TblUserPages.Add((await _db.TblUserPages.AddAsync(new TblUserPage
+                        {
+                            UserId = validUser.UserDetails.UserId,
+                            PageId = pageId,
+                            CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
                             CreatedDate = DateTime.Now
                         })).Entity);
                     }
                 }
 
-                validUser.Token = CreateToken(validUser.UserDetails, roles.Select(x=> x.RoleName).ToList());
+                validUser.Token = CreateToken(validUser.UserDetails, roles.Select(x => x.RoleName).ToList(), pages.Select(x=> x.PageName).ToList());
 
                 await _db.SaveChangesAsync();
 
@@ -147,7 +169,7 @@ namespace SuccessRecruitment.Services.Auth
          
         }
 
-        private string CreateToken(Tbluser user, List<string> userRoles)
+        private string CreateToken(Tbluser user, List<string> roleNames, List<string> pageNames)
         {
             try
             {
@@ -155,11 +177,15 @@ namespace SuccessRecruitment.Services.Auth
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString())
             };
-                foreach (var role in userRoles)
+                foreach (var roleName in roleNames)
                 {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
+                    claims.Add(new Claim(ClaimTypes.Role, roleName));
                 }
-           //     claims.Add(new Claim(type: "Page", value: curUser.UserGroupID.ToString()));
+                foreach (var pageName in pageNames)
+                {
+                    claims.Add(new Claim(ClaimTypes.Webpage, pageName));
+                }
+                
                 SigningCredentials creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor

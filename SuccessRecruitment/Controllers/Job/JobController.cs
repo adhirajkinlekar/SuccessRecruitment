@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.DataTransferObjects.JobDataTransferObjects;
 using Microsoft.AspNetCore.Authorization;
-using System.Linq;
-using System.Security.Claims;
 
 namespace SuccessRecruitment.Controllers
 {

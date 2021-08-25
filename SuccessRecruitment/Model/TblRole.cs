@@ -9,6 +9,7 @@ namespace SuccessRecruitment.Models
     {
         public TblRole()
         {
+            TblRolePages = new HashSet<TblRolePage>();
             TblUserRoles = new HashSet<TblUserRole>();
         }
 
@@ -20,6 +21,7 @@ namespace SuccessRecruitment.Models
         public DateTime? ModifiedDate { get; set; }
         public bool IsArchived { get; set; }
 
+        public virtual ICollection<TblRolePage> TblRolePages { get; set; }
         public virtual ICollection<TblUserRole> TblUserRoles { get; set; }
     }
 }

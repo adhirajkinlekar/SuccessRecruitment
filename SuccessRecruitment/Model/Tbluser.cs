@@ -10,6 +10,7 @@ namespace SuccessRecruitment.Models
         public Tbluser()
         {
             TblJobs = new HashSet<TblJob>();
+            TblUserPages = new HashSet<TblUserPage>();
             TblUserRoles = new HashSet<TblUserRole>();
         }
 
@@ -25,6 +26,7 @@ namespace SuccessRecruitment.Models
 
         public virtual TblLogin TblLogin { get; set; }
         public virtual ICollection<TblJob> TblJobs { get; set; }
+        public virtual ICollection<TblUserPage> TblUserPages { get; set; }
         public virtual ICollection<TblUserRole> TblUserRoles { get; set; }
     }
 }

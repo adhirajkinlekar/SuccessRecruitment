@@ -32,7 +32,10 @@ namespace SuccessRecruitment.Models
 
         public virtual DbSet<TblJob> TblJobs { get; set; }
         public virtual DbSet<TblLogin> TblLogins { get; set; }
+        public virtual DbSet<TblPage> TblPages { get; set; }
         public virtual DbSet<TblRole> TblRoles { get; set; }
+        public virtual DbSet<TblRolePage> TblRolePages { get; set; }
+        public virtual DbSet<TblUserPage> TblUserPages { get; set; }
         public virtual DbSet<TblUserRole> TblUserRoles { get; set; }
         public virtual DbSet<Tbluser> Tblusers { get; set; }
 
@@ -63,6 +66,8 @@ namespace SuccessRecruitment.Models
                     .HasColumnType("datetime")
                     .HasColumnName("createdDate")
                     .HasDefaultValueSql("(getutcdate())");
+
+                entity.Property(e => e.EmployerId).HasColumnName("employerId");
 
                 entity.Property(e => e.Field)
                     .IsRequired()
@@ -95,11 +100,9 @@ namespace SuccessRecruitment.Models
                     .HasColumnType("datetime")
                     .HasColumnName("modifiedDate");
 
-                entity.Property(e => e.PostedBy).HasColumnName("postedBy");
-
-                entity.HasOne(d => d.User)
+                entity.HasOne(d => d.Employer)
                     .WithMany(p => p.TblJobs)
-                    .HasForeignKey(d => d.PostedBy)
+                    .HasForeignKey(d => d.EmployerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__tblJobs__postedB__5070F446");
             });
@@ -107,11 +110,11 @@ namespace SuccessRecruitment.Models
             modelBuilder.Entity<TblLogin>(entity =>
             {
                 entity.HasKey(e => e.LoginId)
-                    .HasName("PK__tblLogin__1F5EF4CFEC8CF5A9");
+                    .HasName("PK__tblLogin__1F5EF4CFD270EF20");
 
                 entity.ToTable("tblLogin");
 
-                entity.HasIndex(e => e.UserId, "UQ__tblLogin__CB9A1CFE83F89488")
+                entity.HasIndex(e => e.UserId, "UQ__tblLogin__CB9A1CFEFFD1F4B4")
                     .IsUnique();
 
                 entity.Property(e => e.LoginId).HasColumnName("loginId");
@@ -143,7 +146,51 @@ namespace SuccessRecruitment.Models
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.TblLogin)
                     .HasForeignKey<TblLogin>(d => d.UserId)
-                    .HasConstraintName("FK__tblLogin__userId__114A936A");
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__tblLogin__userId__1F98B2C1");
+            });
+
+            modelBuilder.Entity<TblPage>(entity =>
+            {
+                entity.HasKey(e => e.PageId)
+                    .HasName("PK__tblPages__54B1FF7466F00F0F");
+
+                entity.ToTable("tblPages");
+
+                entity.Property(e => e.PageId).HasColumnName("pageId");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("createdDate");
+
+                entity.Property(e => e.IsAddEditPage).HasColumnName("isAddEditPage");
+
+                entity.Property(e => e.IsArchived).HasColumnName("isArchived");
+
+                entity.Property(e => e.IsExternal).HasColumnName("isExternal");
+
+                entity.Property(e => e.IsTab).HasColumnName("isTab");
+
+                entity.Property(e => e.ModifiedBy).HasColumnName("modifiedBy");
+
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("modifiedDate");
+
+                entity.Property(e => e.PageName)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasColumnName("pageName");
+
+                entity.Property(e => e.ParentPageId).HasColumnName("parentPageId");
+
+                entity.HasOne(d => d.ParentPage)
+                    .WithMany(p => p.InverseParentPage)
+                    .HasForeignKey(d => d.ParentPageId)
+                    .HasConstraintName("FK__tblPages__parent__2739D489");
             });
 
             modelBuilder.Entity<TblRole>(entity =>
@@ -180,6 +227,89 @@ namespace SuccessRecruitment.Models
                     .HasColumnName("roleName");
             });
 
+            modelBuilder.Entity<TblRolePage>(entity =>
+            {
+                entity.HasKey(e => e.RolePageId)
+                    .HasName("PK__tblRoleP__631D09D7ABD0EE54");
+
+                entity.ToTable("tblRolePages");
+
+                entity.HasIndex(e => new { e.RoleId, e.PageId }, "UC_RolePge")
+                    .IsUnique();
+
+                entity.Property(e => e.RolePageId).HasColumnName("rolePageId");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("createdDate");
+
+                entity.Property(e => e.IsArchived).HasColumnName("isArchived");
+
+                entity.Property(e => e.ModifiedBy).HasColumnName("modifiedBy");
+
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("modifiedDate");
+
+                entity.Property(e => e.PageId).HasColumnName("pageId");
+
+                entity.Property(e => e.RoleId).HasColumnName("roleId");
+
+                entity.HasOne(d => d.TblPage)
+                    .WithMany(p => p.TblRolePages)
+                    .HasForeignKey(d => d.PageId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__tblRolePa__pageI__31B762FC");
+
+                entity.HasOne(d => d.TblRole)
+                    .WithMany(p => p.TblRolePages)
+                    .HasForeignKey(d => d.RoleId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__tblRolePa__roleI__30C33EC3");
+            });
+
+            modelBuilder.Entity<TblUserPage>(entity =>
+            {
+                entity.HasKey(e => e.UserPageId)
+                    .HasName("PK__tblUserP__8703E2B9F8D77A0E");
+
+                entity.ToTable("tblUserPages");
+
+                entity.Property(e => e.UserPageId).HasColumnName("userPageId");
+
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("createdDate");
+
+                entity.Property(e => e.IsArchived).HasColumnName("isArchived");
+
+                entity.Property(e => e.ModifiedBy).HasColumnName("modifiedBy");
+
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("datetime")
+                    .HasColumnName("modifiedDate");
+
+                entity.Property(e => e.PageId).HasColumnName("pageId");
+
+                entity.Property(e => e.UserId).HasColumnName("userId");
+
+                entity.HasOne(d => d.TblPage)
+                    .WithMany(p => p.TblUserPages)
+                    .HasForeignKey(d => d.PageId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__tblUserPa__pageI__2BFE89A6");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.TblUserPages)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK__tblUserPa__userI__2B0A656D");
+            });
+
             modelBuilder.Entity<TblUserRole>(entity =>
             {
                 entity.HasKey(e => e.UserRoleId)
@@ -211,7 +341,7 @@ namespace SuccessRecruitment.Models
 
                 entity.Property(e => e.UserId).HasColumnName("userId");
 
-                entity.HasOne(d => d.Role)
+                entity.HasOne(d => d.TblRole)
                     .WithMany(p => p.TblUserRoles)
                     .HasForeignKey(d => d.RoleId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
