@@ -9,33 +9,26 @@ namespace SuccessRecruitment.Controllers
 {
     public class RecuritmentControllerBase: ControllerBase
     {
-        //protected static Guid CurrentUser { get; set; }
-        //protected Guid GetCurrentUser()
-        //{
-        //        if(User != null)
-        //        {
-        //            var currentUser = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
-        //            return CheckIfUserIsValid(currentUser);
-        //        }
-        //        return new Guid();
-        //}
-        //protected Guid CheckIfUserIsValid(Guid currenUser)
-        //{
-        //    try
-        //    {
-        //        if(currenUser == Guid.Empty)
-        //        {
-        //            throw new Exception("Unauthorised user");
-        //        }
-        //        else
-        //        {
-        //            return currenUser;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message);
-        //    }
-        //}
-    }
+
+        public bool HasPageAcces(string pageName)
+        {
+
+            var pages = User.FindAll(x => x.Type == "Pages");
+
+            List<string> pageNames = new List<string>();
+
+            foreach (var page in pages)
+            {
+                pageNames.Add(page.Value);
+            }
+
+            if(pageNames.Any(name=> name == pageName))
+            {
+                return true;
+            }
+
+            return false;
+            }
+
+        }
 }

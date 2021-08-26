@@ -183,7 +183,7 @@ namespace SuccessRecruitment.Services.Auth
                 }
                 foreach (var pageName in pageNames)
                 {
-                    claims.Add(new Claim(ClaimTypes.Webpage, pageName));
+                    claims.Add(new Claim("Pages", pageName));
                 }
                 
                 SigningCredentials creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

@@ -60,7 +60,7 @@ namespace SuccessRecruitment.Services
             try
             {
                 bool isCreated;
-                var jobExists = await _db.TblJobs.AnyAsync(x => x.JobLocation == newJob.JobLocation && x.JobTitle == newJob.JobTitle && x.EmployerId == newJob.PostedBy && !x.IsArchived);
+                var jobExists = await _db.TblJobs.AnyAsync(x => x.JobLocation == newJob.JobLocation && x.JobTitle == newJob.JobTitle && x.EmployerId == newJob.EmployerId && !x.IsArchived);
 
                 if (jobExists)
                 {
@@ -74,8 +74,8 @@ namespace SuccessRecruitment.Services
                         JobDescription = newJob.JobDescription,
                         Field = newJob.Field,
                         JobLocation = newJob.JobLocation,
-                        CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
-                        EmployerId = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
+                        CreatedBy = GetUserId(),
+                        EmployerId = newJob.EmployerId,
                         CreatedDate = DateTime.Now
                     });
 
@@ -108,8 +108,8 @@ namespace SuccessRecruitment.Services
                     job.JobDescription = updatedJob.JobDescription;
                     job.Field = updatedJob.Field;
                     job.JobLocation = updatedJob.JobLocation;
-                    job.EmployerId = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060");
-                    job.ModifiedBy = Guid.Parse("6B951FDB-31BE-4AE1-8B96-28A3075D7060");
+                    job.EmployerId = updatedJob.EmployerId;
+                    job.ModifiedBy = GetUserId();
                     job.ModifiedDate = DateTime.Now;
 
                     await _db.SaveChangesAsync();
