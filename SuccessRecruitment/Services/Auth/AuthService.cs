@@ -140,7 +140,7 @@ namespace SuccessRecruitment.Services.Auth
 
                     bool IsExternal = roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate");
 
-                    pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal).Select(x=> x.TblPage).ToListAsync();
+                    pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal && !x.IsArchived && !x.TblPage.IsArchived && !x.TblPage.IsAddEditPage).Select(x=> x.TblPage).ToListAsync();
 
                     List<int> pageIds = pages.Select(x => x.PageId).ToList();
 
