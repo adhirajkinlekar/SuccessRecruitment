@@ -139,8 +139,9 @@ namespace SuccessRecruitment.Services.Auth
                     }
 
                     bool IsExternal = roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate");
-                    bool hasAddEditprivileges = roles.Any(x => x.RoleName == "Admin");
-                    pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal && !x.IsArchived && !x.TblPage.IsArchived && x.TblPage.IsAddEditPage == hasAddEditprivileges).Select(x=> x.TblPage).ToListAsync();
+                    bool hasAddEditprivileges = roles.Any(x => x.RoleName == "Admin" || x.RoleName == "General Manager");
+                    //By default a new user is given access to read only pages unless their role is Admin or General Manager
+                    pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal && !x.IsArchived && !x.TblPage.IsArchived && ( !x.TblPage.IsAddEditPage || hasAddEditprivileges)).Select(x=> x.TblPage).ToListAsync();
 
                     List<int> pageIds = pages.Select(x => x.PageId).ToList();
 
