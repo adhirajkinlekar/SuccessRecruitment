@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.DataTransferObjects.JobDataTransferObjects;
 using Microsoft.AspNetCore.Authorization;
-using SuccessRecruitment.Shared.Constants;
+using SuccessRecruitment.Shared.Pages;
 
 namespace SuccessRecruitment.Controllers
 {
@@ -40,7 +40,7 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
-                if (!HasPageAcces(Constants.ViewJobsPage))
+                if (!HasPageAcces(Pages.ViewJobsPage))
                 {
                     return Unauthorized();
                 }
@@ -60,7 +60,7 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
-                if (!HasPageAcces(Constants.AddEditPage))
+                if (!HasPageAcces(Pages.AddEditPage))
                 {
                     return Unauthorized();
                 }
@@ -80,7 +80,7 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
-                if (!HasPageAcces(Constants.AddEditPage))
+                if (!HasPageAcces(Pages.AddEditPage))
                 {
                     return Unauthorized();
                 }
