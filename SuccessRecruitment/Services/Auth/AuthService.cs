@@ -17,8 +17,8 @@ namespace SuccessRecruitment.Services.Auth
 {
     public interface IAuthService
     {
-        Task<ValidUserDTO> Register(UserRegisterDTO newUser);
-        Task<ValidUserDTO> Login(UserLoginDTO user);
+        Task<string> Register(UserRegisterDTO newUser);
+        Task<validuserdto> Login(UserLoginDTO user);
     }
 
     public class AuthService : IAuthService
@@ -32,44 +32,45 @@ namespace SuccessRecruitment.Services.Auth
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
         }
 
-        public async Task<ValidUserDTO> Login(UserLoginDTO user)
+        public async Task<validuserdto> Login(UserLoginDTO user)
         {
             try
             {
-                ValidUserDTO validUser = new ValidUserDTO();
-                validUser.UserDetails = await _db.Tblusers.Include(x => x.TblLogin).Include(x=> x.TblUserRoles).Include(x=> x.TblUserPages).Where(u => u.UserName == user.UserName).FirstOrDefaultAsync();
+                Tbluser validUser = new Tbluser();
+                validUser = await _db.Tblusers.Include(x => x.TblLogin).Include(x=> x.TblUserRoles).Include(x=> x.TblUserPages).Where(u => u.Email == user.Email).FirstOrDefaultAsync();
                 
-                if (validUser.UserDetails == null)
+                if (validUser == null)
                 {
-                    throw new Exception("Incorrect Username or Password");
+                    throw new Exception("Incorrect Email or Password");
                 }
 
 
-                HMACSHA512 hmac = new HMACSHA512(validUser.UserDetails.TblLogin.PasswordSalt);
+                HMACSHA512 hmac = new HMACSHA512(validUser.TblLogin.PasswordSalt);
 
                 var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password));
 
                 for (var i = 0; i < computedHash.Length; i++)
                 {
-                    if (computedHash[i] != validUser.UserDetails.TblLogin.PasswordHash[i])
+                    if (computedHash[i] != validUser.TblLogin.PasswordHash[i])
                     {
                         throw new Exception("Incorrect Username or Password");
                     }
                 }
 
-                List<int> roleIds = validUser.UserDetails.TblUserRoles.Select(x => x.RoleId).ToList();
-                List<int> pageIds = validUser.UserDetails.TblUserPages.Select(x => x.PageId).ToList();
+                List<int> roleIds = validUser.TblUserRoles.Select(x => x.RoleId).ToList();
+                List<int> pageIds = validUser.TblUserPages.Select(x => x.PageId).ToList();
                 List<string> userRoles = await _db.TblUserRoles.Include(x => x.TblRole).Where(x => roleIds.Contains(x.RoleId) && !x.IsArchived).Select(x => x.TblRole.RoleName).ToListAsync();
                 List<string> userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => pageIds.Contains(x.PageId) && !x.IsArchived).Select(x => x.TblPage.PageName).ToListAsync();
                 //try to get all these results in 1 query
-                validUser.Token = CreateToken(validUser.UserDetails, userRoles, userPages);
-
-                if (validUser.Token == null)
+                validuserdto validuserdto = new validuserdto();
+                validuserdto.token = CreateToken(validUser, userRoles, userPages);
+                validuserdto.userName = validUser.UserName;
+                if (validuserdto.token == null)
                 {
                     throw new Exception("Unable to create Token. Please contact system administrator");
                 }
                
-                return validUser;
+                return validuserdto;
             }
             catch (Exception ex)
             {
@@ -78,11 +79,11 @@ namespace SuccessRecruitment.Services.Auth
           
         }
 
-        public async Task<ValidUserDTO> Register(UserRegisterDTO newUser)
+        public async Task<string> Register(UserRegisterDTO newUser)
         {
             try
             {
-                ValidUserDTO validUser = new ValidUserDTO();
+                Tbluser validUser = new Tbluser();
                 
                 if(newUser.UserName == null || newUser.Email == null || newUser.Password == null || newUser.RoleIds.Count == 0)
                 {
@@ -104,7 +105,7 @@ namespace SuccessRecruitment.Services.Auth
                 }
                 else
                 {
-                    validUser.UserDetails = (await _db.Tblusers.AddAsync(new Tbluser
+                    validUser = (await _db.Tblusers.AddAsync(new Tbluser
                     {
                         UserId = Guid.NewGuid(),
                         UserName = newUser.UserName,
@@ -118,7 +119,7 @@ namespace SuccessRecruitment.Services.Auth
                     //If a column has been added an identity, the application has to be scafolled otherwise the application will pass a default value from the dataype
                     _db.TblLogins.Add(new TblLogin
                     {
-                        UserId = validUser.UserDetails.UserId,
+                        UserId = validUser.UserId,
                         PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(newUser.Password)),
                         PasswordSalt = hmac.Key,
                         CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
@@ -129,9 +130,9 @@ namespace SuccessRecruitment.Services.Auth
                     
                     foreach (var roleId in roleIds)
                     {
-                        validUser.UserDetails.TblUserRoles.Add((await _db.TblUserRoles.AddAsync(new TblUserRole
+                        validUser.TblUserRoles.Add((await _db.TblUserRoles.AddAsync(new TblUserRole
                         {
-                            UserId = validUser.UserDetails.UserId,
+                            UserId = validUser.UserId,
                             RoleId = roleId,
                             CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
                             CreatedDate = DateTime.Now
@@ -140,16 +141,16 @@ namespace SuccessRecruitment.Services.Auth
 
                     bool IsExternal = roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate");
                     bool hasAddEditprivileges = roles.Any(x => x.RoleName == "Admin" || x.RoleName == "General Manager" || x.RoleName == "Recruiter" || x.RoleName == "Candidate");
-                    //By default a new user is given access to read only pages unless their role is Admin or General Manager
+                    //By default a new user is not given access to editable pages unless their role is Admin or General Manager
                     pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal && !x.IsArchived && !x.TblPage.IsArchived && ( !x.TblPage.IsAddEditPage || hasAddEditprivileges)).Select(x=> x.TblPage).ToListAsync();
 
                     List<int> pageIds = pages.Select(x => x.PageId).ToList();
 
                     foreach (var pageId in pageIds)
                     {
-                        validUser.UserDetails.TblUserPages.Add((await _db.TblUserPages.AddAsync(new TblUserPage
+                        validUser.TblUserPages.Add((await _db.TblUserPages.AddAsync(new TblUserPage
                         {
-                            UserId = validUser.UserDetails.UserId,
+                            UserId = validUser.UserId,
                             PageId = pageId,
                             CreatedBy = Guid.Parse("3AF1BA96-4A39-467C-8AD9-3F418F199CD0"),
                             CreatedDate = DateTime.Now
@@ -157,11 +158,11 @@ namespace SuccessRecruitment.Services.Auth
                     }
                 }
 
-                validUser.Token = CreateToken(validUser.UserDetails, roles.Select(x => x.RoleName).ToList(), pages.Select(x=> x.PageName).ToList());
+                string token = CreateToken(validUser, roles.Select(x => x.RoleName).ToList(), pages.Select(x=> x.PageName).ToList());
 
                 await _db.SaveChangesAsync();
 
-                return validUser;
+                return token;
             }
             catch (Exception ex)
             {

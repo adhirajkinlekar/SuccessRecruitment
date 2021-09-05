@@ -35,17 +35,29 @@ namespace SuccessRecruitment.Controllers.Auth
             }
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("Login")]
         public async Task<IActionResult> Login(UserLoginDTO user)
         {
             try
             {
-                user.UserName = user.UserName.Trim();
+                user.Email = user.Email.Trim();
                 return Ok(await _repo.Login(user));
             }
             catch (Exception ex)
             {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("IsAuthenticated")]
+        public IActionResult  CheckUserAuthentication()
+        {
+            try
+            {
+                return Ok(User.Identity.IsAuthenticated);
+            }
+            catch (Exception ex) {
                 return BadRequest(ex.Message);
             }
         }

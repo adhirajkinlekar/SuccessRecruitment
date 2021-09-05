@@ -17,7 +17,7 @@ namespace SuccessRecruitment.DataTransferObjects.Auth
 
     public class UserLoginDTO
     {
-        public string UserName { get; set; }
+        public string Email { get; set; }
         public string Password { get; set; }
     }
     public class CreateLoginDTO
@@ -28,10 +28,10 @@ namespace SuccessRecruitment.DataTransferObjects.Auth
        public Guid CreatedBy { get; set; }
        public DateTime CreatedDate { get; set; }
     }
-    public class ValidUserDTO
+    public class validuserdto
     {
-        public string Token { get; set; }
-        public Tbluser UserDetails { get; set; }
+        public string token { get; set; }
+        public string userName { get; set; }
     }
 }
 

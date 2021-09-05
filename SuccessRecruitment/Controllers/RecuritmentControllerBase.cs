@@ -13,22 +13,12 @@ namespace SuccessRecruitment.Controllers
         public bool HasPageAcces(string pageName)
         {
 
-            var pages = User.FindAll(x => x.Type == "Pages");
-
-            List<string> pageNames = new List<string>();
-
-            foreach (var page in pages)
-            {
-                pageNames.Add(page.Value);
-            }
-
-            if(pageNames.Any(name=> name == pageName))
+            if(User.FindAll(x => x.Type == "Pages").Select(x => x.Value).ToList().Any(name => name == pageName))
             {
                 return true;
             }
 
             return false;
             }
-
         }
 }

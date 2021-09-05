@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using SuccessRecruitment.Models;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.Services.Auth;
+using SuccessRecruitment.Services.Home;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -33,9 +34,10 @@ namespace SuccessRecruitment
                 // Following line has been added to avoid
                 //System.Text.Json.JsonException: A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles.
                 .AddJsonOptions(x =>  x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
-
+            services.AddCors();
             services.AddScoped<IJobService, JobService>();
-            services.AddScoped<IAuthService, AuthService>(); 
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IHomeService, HomeService>();
             services.AddCors();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
            .AddJwtBearer(options =>
@@ -68,6 +70,8 @@ namespace SuccessRecruitment
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(x=> x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
 
             //By using authentication we can restrict access to the controller or methods by using Authorize attribute to the controller. This way only the user with the JSON Web token can access the API.
             app.UseAuthentication();
