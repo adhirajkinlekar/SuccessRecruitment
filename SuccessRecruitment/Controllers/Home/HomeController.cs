@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SuccessRecruitment.Services.Home;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SuccessRecruitment.Controllers
@@ -26,8 +23,8 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
-                await _repo.GetAppInformation();
-                return Ok();
+                
+                return Ok(await _repo.GetAppInformation());
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using SuccessRecruitment.DataTransferObjects;
 using SuccessRecruitment.Models;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace SuccessRecruitment.Services.Home
 {
     public interface IHomeService
     {
-        Task GetAppInformation();
+        Task<Pages> GetAppInformation();
     }
 
     public class HomeService : IHomeService
@@ -25,15 +26,47 @@ namespace SuccessRecruitment.Services.Home
             _httpContextAccessor = IHttpContextAccessor;
         }
 
-        public async Task GetAppInformation()
+        public async Task<Pages> GetAppInformation()
         {
-            var currentUser = GetUserId();
+            try
+            {
+                var currentUser = GetUserId();
 
-            //List<int> userRoles = await _db.TblUserRoles.Where(x => x.UserId == currentUser && !x.IsArchived).Select(x => x.RoleId).ToListAsync();
+                var userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => x.UserId == currentUser).ToListAsync();
 
-            //List<TblPage> userPages = await _db.TblUserPages.Where(x => x.UserId == currentUser && !x.TblPage.IsExternal).Select(x => x.TblPage).ToListAsync();
+                Pages pages = new Pages();
 
-            return;
+                pages.Tabs = userPages.Where(x => x.TblPage.IsTab).Select(x => new PageInfo
+                {
+                   PageId = x.TblPage.PageId,
+                   PageName = x.TblPage.PageName,
+                   ParentPageId = x.TblPage.ParentPageId != null ? x.TblPage.ParentPageId.Value : null
+                }).ToList();
+
+                var tabIds = pages.Tabs.Select(x => x.PageId).ToList();
+
+                pages.SubPages = userPages.Where(x => x.TblPage.ParentPageId != null && tabIds.Contains(x.TblPage.ParentPageId.Value)).Select(x => new PageInfo {
+                    PageId = x.PageId,
+                    PageName= x.TblPage.PageName,
+                    ParentPageId = x.TblPage.ParentPageId != null ? x.TblPage.ParentPageId.Value : null
+                }).ToList();
+
+                var subPageIds = pages.SubPages.Select(x => x.PageId).ToList();
+                 
+                pages.ChildPages = userPages.Where(x => x.TblPage.ParentPageId != null && subPageIds.Contains(x.TblPage.ParentPageId.Value)).Select(x => new PageInfo
+                {
+                    PageId = x.PageId,
+                    PageName = x.TblPage.PageName,
+                    ParentPageId = x.TblPage.ParentPageId != null ? x.TblPage.ParentPageId.Value : null
+                }).ToList();
+              
+
+                return pages;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         private Guid GetUserId() => Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
