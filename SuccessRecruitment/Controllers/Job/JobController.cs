@@ -19,6 +19,26 @@ namespace SuccessRecruitment.Controllers
             _repo = jobService;
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        [Route("Recuiters")]
+        public async Task<IActionResult> GetRecruiters()
+        {
+            try
+            {
+                if (!HasPageAcces(Pages.ViewJobsPage))
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(await _repo.GetRecuiters());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [AllowAnonymous]
         [HttpGet]
         [Route("GetAllJobs")]
@@ -60,6 +80,7 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
+                var a = ModelState;
                 if (!HasPageAcces(Pages.AddEditPage))
                 {
                     return Unauthorized();

@@ -16,6 +16,7 @@ namespace SuccessRecruitment.Services
         Task<bool> PublishJob(PublishJob newJob);
         Task<bool> UpdateJob(UpdateJob updatedJob);
         Task<List<TblJob>> GetJobsByUser();
+        Task<List<Recruiter>> GetRecuiters();
     }
 
     public class JobService : IJobService
@@ -27,6 +28,8 @@ namespace SuccessRecruitment.Services
             _db = database;
             _httpContextAccessor = IHttpContextAccessor;
         }
+
+        private Guid GetUserId() => Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
         public async Task<List<TblJob>> GetAllJobs()
         {
@@ -54,6 +57,7 @@ namespace SuccessRecruitment.Services
             }
         }
 
+      
 
         public async Task<bool> PublishJob(PublishJob newJob)
         {
@@ -123,6 +127,15 @@ namespace SuccessRecruitment.Services
             }
         }
 
-        private Guid GetUserId() => Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        public async Task<List<Recruiter>> GetRecuiters()
+        {
+            List<Recruiter> recruiters = await _db.TblUserRoles.Where(x => !x.IsArchived && !x.TblRole.IsArchived && x.TblRole.RoleName == "Recruiter" && !x.User.IsArchived).Select(x => new Recruiter
+            {
+                RecruiterId = x.User.UserId,
+                RecruiterName = x.User.UserName
+            }).ToListAsync();
+
+            return recruiters;
+        }
     }
 }

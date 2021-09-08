@@ -24,4 +24,10 @@ namespace SuccessRecruitment.DataTransferObjects.JobDataTransferObjects
         public Guid? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
     }
+
+    public class Recruiter
+    {
+        public Guid RecruiterId { get; set; }
+        public string RecruiterName { get; set; }
+    }
 }
