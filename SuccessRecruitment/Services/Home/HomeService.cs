@@ -57,6 +57,7 @@ namespace SuccessRecruitment.Services.Home
                 {
                     PageId = x.PageId,
                     PageName = x.TblPage.PageName,
+                    PageLink = x.TblPage.PageLink,
                     ParentPageId = x.TblPage.ParentPageId != null ? x.TblPage.ParentPageId.Value : null
                 }).ToList();
               

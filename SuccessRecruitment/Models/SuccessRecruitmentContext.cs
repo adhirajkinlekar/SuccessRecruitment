@@ -179,6 +179,10 @@ namespace SuccessRecruitment.Models
                     .HasColumnType("datetime")
                     .HasColumnName("modifiedDate");
 
+                entity.Property(e => e.PageLink)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.PageName)
                     .IsRequired()
                     .HasMaxLength(20)

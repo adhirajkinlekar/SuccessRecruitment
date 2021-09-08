@@ -25,6 +25,7 @@ namespace SuccessRecruitment.Models
         public bool IsAddEditPage { get; set; }
         public bool IsArchived { get; set; }
         public bool IsExternal { get; set; }
+        public string PageLink { get; set; }
 
         public virtual TblPage ParentPage { get; set; }
         public virtual ICollection<TblPage> InverseParentPage { get; set; }

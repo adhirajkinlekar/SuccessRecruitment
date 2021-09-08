@@ -16,6 +16,7 @@ namespace SuccessRecruitment.DataTransferObjects
     {
         public string PageName { get; set; }
         public int PageId { get; set; }
+        public string PageLink { get; set; }
         public int? ParentPageId { get; set; }
     }
 
