@@ -12,7 +12,8 @@ namespace SuccessRecruitment.Services
 
     public interface IJobService
     {
-        Task<List<TblJob>> GetAllJobs();
+        Task<List<Job>> GetAllJobs();
+        Task<Job> GetJobById(int jobId);
         Task<bool> PublishJob(PublishJob newJob);
         Task<bool> UpdateJob(UpdateJob updatedJob);
         Task<List<TblJob>> GetJobsByUser();
@@ -31,18 +32,50 @@ namespace SuccessRecruitment.Services
 
         private Guid GetUserId() => Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        public async Task<List<TblJob>> GetAllJobs()
+        public async Task<List<Job>> GetAllJobs()
         {
             try
             {
-                var activeJobs = await _db.TblJobs.Where(x => !x.IsArchived).ToListAsync();
-                return activeJobs;
+                var jobs = await _db.TblJobs.Include(x=> x.Employer).Where(x => !x.IsArchived).Select(x=> new
+                Job
+                {
+                    JobId = x.JobId,
+                    JobTitle = x.JobTitle,
+                    Field = x.Field,
+                    RecruiterName = x.Employer.UserName
+                }
+                ).ToListAsync();
+                return jobs;
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<Job> GetJobById(int jobId)
+        {
+            try
+            {
+                var job = await _db.TblJobs.Include(x => x.Employer).Where(x => x.JobId == jobId).Select(x => new
+                 Job
+                {
+                    JobId = x.JobId,
+                    JobTitle = x.JobTitle,
+                    Field = x.Field,
+                    RecruiterName = x.Employer.UserName,
+                    RecruiterId = x.Employer.UserId,
+                    JobDescription = x.JobDescription,
+                    JobLocation = x.JobLocation
+                }
+                ).FirstOrDefaultAsync();
+                return job;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        
 
         public async Task<List<TblJob>> GetJobsByUser()
         {

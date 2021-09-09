@@ -41,12 +41,26 @@ namespace SuccessRecruitment.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        [Route("GetAllJobs")]
+        [Route("AllJobs")]
         public async Task<IActionResult> GetAllJobs()
         {
             try
             {
                 return Ok(await _repo.GetAllJobs());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Authorize(Roles = "Admin,Recruiter")]
+        [Route("Job/{jobId}")]
+        public async Task<IActionResult> GetJobById(int jobId)
+        {
+            try
+            {
+                return Ok(await _repo.GetJobById(jobId));
             }
             catch (Exception ex)
             {
@@ -81,7 +95,7 @@ namespace SuccessRecruitment.Controllers
             try
             {
                 var a = ModelState;
-                if (!HasPageAcces(Pages.AddEditPage))
+                if (!HasPageAcces(Pages.AddJobPage))
                 {
                     return Unauthorized();
                 }
@@ -101,7 +115,7 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
-                if (!HasPageAcces(Pages.AddEditPage))
+                if (!HasPageAcces(Pages.AddJobPage))
                 {
                     return Unauthorized();
                 }
