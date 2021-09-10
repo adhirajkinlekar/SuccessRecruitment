@@ -42,7 +42,10 @@ namespace SuccessRecruitment.Services
                     JobId = x.JobId,
                     JobTitle = x.JobTitle,
                     Field = x.Field,
-                    RecruiterName = x.Employer.UserName
+                    RecruiterName = x.Employer.UserName,
+                    JobDescription = x.JobDescription,
+                    JobLocation = x.JobLocation,
+                    RecruiterId = x.Employer.UserId
                 }
                 ).ToListAsync();
                 return jobs;
