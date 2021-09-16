@@ -20,7 +20,7 @@ namespace SuccessRecruitment.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Administrator")]
         [Route("Recuiters")]
         public async Task<IActionResult> GetRecruiters()
         {
@@ -54,7 +54,7 @@ namespace SuccessRecruitment.Controllers
             }
         }
         [HttpGet]
-        [Authorize(Roles = "Admin,Recruiter")]
+        [Authorize(Roles = "Administrator,Recruiter")]
         [Route("Job/{jobId}")]
         public async Task<IActionResult> GetJobById(int jobId)
         {
@@ -68,7 +68,7 @@ namespace SuccessRecruitment.Controllers
             }
         }
         [HttpGet]
-        [Authorize(Roles  = "Admin,Recruiter")]
+        [Authorize(Roles  = "Administrator,Recruiter")]
         [Route("GetJobsByUser")]
         public async Task<IActionResult> GetJobsByUser()
         {
@@ -87,7 +87,7 @@ namespace SuccessRecruitment.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,Recruiter")]
+        [Authorize(Roles = "Administrator,Recruiter")]
         [HttpPost]
         [Route("PublishJob")]
         public async Task<IActionResult> PublishJob(PublishJob newJob)
@@ -108,7 +108,7 @@ namespace SuccessRecruitment.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,Recruiter")]
+        [Authorize(Roles = "Administrator,Recruiter")]
         [HttpPut]
         [Route("UpdateJob")]
         public async Task<IActionResult> UpdateJob(UpdateJob updatedJob)

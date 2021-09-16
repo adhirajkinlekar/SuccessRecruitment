@@ -30,8 +30,9 @@ namespace SuccessRecruitment.DataTransferObjects.Auth
     }
     public class validuserdto
     {
-        public string token { get; set; }
-        public string userName { get; set; }
+        public string Token { get; set; }
+        public string UserName { get; set; }
+        public string UserRoles { get; set; }
     }
 }
 

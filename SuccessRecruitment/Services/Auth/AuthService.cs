@@ -63,9 +63,10 @@ namespace SuccessRecruitment.Services.Auth
                 List<string> userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => pageIds.Contains(x.PageId) && !x.IsArchived).Select(x => x.TblPage.PageName).ToListAsync();
                 //try to get all these results in 1 query
                 validuserdto validuserdto = new validuserdto();
-                validuserdto.token = CreateToken(validUser, userRoles, userPages);
-                validuserdto.userName = validUser.UserName;
-                if (validuserdto.token == null)
+                validuserdto.Token = CreateToken(validUser, userRoles, userPages);
+                validuserdto.UserName = validUser.UserName;
+                validuserdto.UserRoles = string.Join("/ ", userRoles);
+                if (validuserdto.Token == null)
                 {
                     throw new Exception("Unable to create Token. Please contact system administrator");
                 }
