@@ -55,11 +55,13 @@ namespace SuccessRecruitment.Controllers
         }
         [HttpGet]
         [Authorize(Roles = "Administrator,Recruiter")]
-        [Route("Job/{jobId}")]
+        [Route("{jobId}")]
         public async Task<IActionResult> GetJobById(int jobId)
         {
             try
             {
+
+             
                 return Ok(await _repo.GetJobById(jobId));
             }
             catch (Exception ex)
