@@ -23,7 +23,7 @@ namespace SuccessRecruitment.Controllers
         {
             try
             {
-                
+             
                 return Ok(await _repo.GetAppInformation());
             }
             catch (Exception ex)

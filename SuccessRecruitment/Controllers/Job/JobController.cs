@@ -61,7 +61,7 @@ namespace SuccessRecruitment.Controllers
             try
             {
 
-             
+            //    var queryString = ControllerContext.HttpContext.Request.QueryString.Value;
                 return Ok(await _repo.GetJobById(jobId));
             }
             catch (Exception ex)

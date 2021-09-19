@@ -140,7 +140,7 @@ namespace SuccessRecruitment.Services
 
                 if (job == null)
                 {
-                    throw new Exception("Selected job doesn't exist. Please contact support team");
+                    throw new Exception("Error occured");
                 }
                 else
                 { 
