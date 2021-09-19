@@ -33,3 +33,4 @@ namespace SuccessRecruitment.Controllers
         }
     }
 }
+// check if returning noContent() allows to return an response without having to retrieve any data

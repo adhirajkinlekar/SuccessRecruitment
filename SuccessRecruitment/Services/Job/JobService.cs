@@ -48,6 +48,7 @@ namespace SuccessRecruitment.Services
                     RecruiterId = x.Employer.UserId
                 }
                 ).ToListAsync();
+
                 return jobs;
             }
             catch (Exception ex)
@@ -71,6 +72,12 @@ namespace SuccessRecruitment.Services
                     JobLocation = x.JobLocation
                 }
                 ).FirstOrDefaultAsync();
+
+                if (job == null)
+                {
+                    throw new Exception("Job not found");
+                }
+
                 return job;
             }
             catch (Exception ex)
@@ -165,13 +172,21 @@ namespace SuccessRecruitment.Services
 
         public async Task<List<Recruiter>> GetRecuiters()
         {
-            List<Recruiter> recruiters = await _db.TblUserRoles.Where(x => !x.IsArchived && !x.TblRole.IsArchived && x.TblRole.RoleName == "Recruiter" && !x.User.IsArchived).Select(x => new Recruiter
+            try
             {
-                RecruiterId = x.User.UserId,
-                RecruiterName = x.User.UserName
-            }).ToListAsync();
+                List<Recruiter> recruiters = await _db.TblUserRoles.Where(x => !x.IsArchived && !x.TblRole.IsArchived && x.TblRole.RoleName == "Recruiter" && !x.User.IsArchived).Select(x => new Recruiter
+                {
+                    RecruiterId = x.User.UserId,
+                    RecruiterName = x.User.UserName
+                }).ToListAsync();
 
-            return recruiters;
+                return recruiters;
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+          
         }
     }
 }
