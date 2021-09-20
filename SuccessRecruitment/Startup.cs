@@ -47,6 +47,7 @@ namespace SuccessRecruitment
                 options.UseSqlServer(connectionString);
             }
                );
+
             services.AddControllers()
                 // Following line has been added to avoid
                 //System.Text.Json.JsonException: A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles.
@@ -90,7 +91,7 @@ namespace SuccessRecruitment
 
             app.UseRouting();
 
-            app.UseCors(x=> x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200"));
+            app.UseCors(x=> x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://successrecruitmentv1.herokuapp.com"));
 
             //By using authentication we can restrict access to the controller or methods by using Authorize attribute to the controller. This way only the user with the JSON Web token can access the API.
             app.UseAuthentication();
