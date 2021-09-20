@@ -13,6 +13,7 @@ using SuccessRecruitment.Models;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.Services.Auth;
 using SuccessRecruitment.Services.Home;
+using System;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -30,7 +31,22 @@ namespace SuccessRecruitment
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<RecruitmentDB>(x => x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<RecruitmentDB>(options =>
+            {
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                string connectionString;
+
+                if(env == "Development")
+                {
+                    connectionString = Configuration.GetConnectionString("DefaultConnection");
+                }
+                else
+                {
+                    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+                }
+                options.UseSqlServer(connectionString);
+            }
+               );
             services.AddControllers()
                 // Following line has been added to avoid
                 //System.Text.Json.JsonException: A possible object cycle was detected. This can either be due to a cycle or if the object depth is larger than the maximum allowed depth of 32. Consider using ReferenceHandler.Preserve on JsonSerializerOptions to support cycles.
