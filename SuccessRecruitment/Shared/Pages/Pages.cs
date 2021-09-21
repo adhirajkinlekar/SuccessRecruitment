@@ -9,5 +9,6 @@ namespace SuccessRecruitment.Shared.Pages
     {
        public static readonly string AddJobPage = "Add Job";
        public static readonly string ViewJobsPage = "View Jobs";
+        public static readonly string ViewUsersPage = "View Users";
     }
 }

@@ -13,6 +13,7 @@ using SuccessRecruitment.Models;
 using SuccessRecruitment.Services;
 using SuccessRecruitment.Services.Auth;
 using SuccessRecruitment.Services.Home;
+using SuccessRecruitment.Services.User;
 using System;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -56,6 +57,7 @@ namespace SuccessRecruitment
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IHomeService, HomeService>();
+            services.AddScoped<IUser, UserService>();
             services.AddCors();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
            .AddJwtBearer(options =>
