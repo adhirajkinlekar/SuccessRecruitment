@@ -48,6 +48,7 @@ namespace SuccessRecruitment.Services.Home
                 pages.SubPages = userPages.Where(x => x.TblPage.ParentPageId != null && tabIds.Contains(x.TblPage.ParentPageId.Value)).Select(x => new PageInfo {
                     PageId = x.PageId,
                     PageName= x.TblPage.PageName,
+                    PageLink = x.TblPage.PageLink,
                     ParentPageId = x.TblPage.ParentPageId != null ? x.TblPage.ParentPageId.Value : null
                 }).ToList();
 
