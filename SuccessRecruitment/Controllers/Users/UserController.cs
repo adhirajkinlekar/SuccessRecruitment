@@ -21,7 +21,7 @@ namespace SuccessRecruitment.Controllers.Users
 
     
         [Route("AllUsers")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator,Manager")]
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
