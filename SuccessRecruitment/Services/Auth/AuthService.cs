@@ -17,7 +17,7 @@ namespace SuccessRecruitment.Services.Auth
 {
     public interface IAuthService
     {
-        Task<string> Register(UserRegisterDTO newUser);
+        Task<bool> Register(UserRegisterDTO newUser);
         Task<validuserdto> Login(UserLoginDTO user);
     }
 
@@ -80,22 +80,28 @@ namespace SuccessRecruitment.Services.Auth
           
         }
 
-        public async Task<string> Register(UserRegisterDTO newUser)
+        public async Task<bool> Register(UserRegisterDTO newUser)
         {
             try
             {
                 Tbluser validUser = new Tbluser();
-                
-                if(newUser.UserName == null || newUser.Email == null || newUser.Password == null || newUser.RoleIds.Count == 0)
+
+                newUser.Password = "1234";
+
+                if (newUser.UserName == null || newUser.Email == null || newUser.RoleIds.Count == 0)
                 {
                     throw new Exception("User details and role are required");
                 }
 
                 List<TblRole> roles = await _db.TblRoles.Where(x => newUser.RoleIds.Contains(x.RoleId)).ToListAsync();
-                List<TblPage> pages = new List<TblPage>();
                 if (roles.Any(x=> x.IsArchived))
                 {
                     throw new Exception("One or more selected roles have been archived. Please contact system administrator");
+                }
+
+                if(roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate") && roles.Count > 1)
+                {
+                    throw new Exception("Cant select any other role when selected role is either Recruiter or Candidate");
                 }
 
                 bool userExists = await _db.Tblusers.AnyAsync(x => x.UserName == newUser.UserName.Trim() && x.Email == newUser.Email.Trim() && !x.IsArchived);
@@ -139,13 +145,19 @@ namespace SuccessRecruitment.Services.Auth
                             CreatedDate = DateTime.Now
                         })).Entity);
                     }
-
+                    List<int> tabs = await _db.TblRolePages.Where(x => roleIds.Contains(x.RoleId)).Select(x => x.PageId).ToListAsync();
                     bool IsExternal = roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate");
                     bool hasAddEditprivileges = roles.Any(x => x.RoleName == "Admin" || x.RoleName == "General Manager" || x.RoleName == "Recruiter" || x.RoleName == "Candidate");
                     //By default a new user is not given access to editable pages unless their role is Admin or General Manager
-                    pages = await _db.TblRolePages.Include(x=> x.TblPage).Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsExternal == IsExternal && !x.IsArchived && !x.TblPage.IsArchived && ( !x.TblPage.IsAddEditPage || hasAddEditprivileges)).Select(x=> x.TblPage).ToListAsync();
+                    List<int> subPages = await _db.TblPages.Where(x => tabs.Contains(x.ParentPageId.Value) && x.IsExternal == IsExternal && !x.IsArchived && !x.IsArchived && ( !x.IsAddEditPage || hasAddEditprivileges)).Select(x=> x.PageId).ToListAsync();
 
-                    List<int> pageIds = pages.Select(x => x.PageId).ToList();
+                    List<int> childPages = await _db.TblPages.Where(x => subPages.Contains(x.ParentPageId.Value) && x.IsExternal == IsExternal && !x.IsArchived && !x.IsArchived && (!x.IsAddEditPage || hasAddEditprivileges)).Select(x => x.PageId).ToListAsync();
+
+                    List<int> pageIds = new List<int>();
+
+                    pageIds.AddRange(tabs);
+                    pageIds.AddRange(subPages);
+                    pageIds.AddRange(childPages);
 
                     foreach (var pageId in pageIds)
                     {
@@ -159,11 +171,11 @@ namespace SuccessRecruitment.Services.Auth
                     }
                 }
 
-                string token = CreateToken(validUser, roles.Select(x => x.RoleName).ToList(), pages.Select(x=> x.PageName).ToList());
+                //string token = CreateToken(validUser, roles.Select(x => x.RoleName).ToList(), pages.Select(x=> x.PageName).ToList());
 
                 await _db.SaveChangesAsync();
 
-                return token;
+                return true;
             }
             catch (Exception ex)
             {

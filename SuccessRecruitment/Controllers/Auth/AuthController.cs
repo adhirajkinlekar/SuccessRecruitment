@@ -23,6 +23,10 @@ namespace SuccessRecruitment.Controllers.Auth
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest();
+                }
                newUser.Email = newUser.Email?.Trim();
                newUser.UserName = newUser.UserName?.Trim();
                newUser.Password = newUser.Password?.Trim();

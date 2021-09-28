@@ -12,6 +12,7 @@ namespace SuccessRecruitment.Services.User
     public interface IUser
     {
         Task<List<UserDTO>> GetUsers();
+        Task<List<RoleDTO>> GetRoles();
     }
     public class UserService:IUser
     {
@@ -42,6 +43,24 @@ namespace SuccessRecruitment.Services.User
                 throw new Exception(ex.Message);
             }
           
+        }
+
+        public async Task<List<RoleDTO>> GetRoles()
+        {
+            try
+            {
+                List<RoleDTO> roles = await _db.TblRoles.Where(x => !x.IsArchived).Select(x => new RoleDTO
+                {
+                    RoleId = x.RoleId,
+                    RoleName = x.RoleName
+                }).ToListAsync();
+
+                return roles;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }
