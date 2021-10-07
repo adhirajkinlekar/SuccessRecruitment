@@ -11,6 +11,7 @@ namespace SuccessRecruitment.Services.User
 {
     public interface IUser
     {
+        Task<UserDTO> GetUser(Guid id);
         Task<List<UserDTO>> GetUsers();
         Task<List<RoleDTO>> GetRoles();
     }
@@ -22,6 +23,28 @@ namespace SuccessRecruitment.Services.User
         {
             _db = database;
             _httpContextAccessor = IHttpContextAccessor;
+        }
+
+        public async Task<UserDTO> GetUser(Guid id)
+        {
+            try
+            {
+                var user = await _db.Tblusers.Where(x => x.UserId == id && !x.IsArchived).Select(x => new UserDTO
+                {
+                    UserId = x.UserId,
+                    UserName = x.UserName,
+                    Email = x.Email,
+                    Phone = x.Phone.ToString(),
+                    RoleName = string.Join(",", x.TblUserRoles.ToList().Select(x => x.TblRole.RoleName).ToList()),
+                    RoleIds = x.TblUserRoles.ToList().Select(x=> x.RoleId).ToList()
+                }).FirstOrDefaultAsync();
+                return user;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
         }
 
         public async Task<List<UserDTO>> GetUsers()

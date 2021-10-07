@@ -19,7 +19,26 @@ namespace SuccessRecruitment.Controllers.Users
             _repo = userService;
         }
 
-    
+        [Route("{id}")]
+        [Authorize(Roles = "Administrator")]
+        [HttpGet]
+        public async Task<IActionResult> GetUser(Guid id)
+        {
+            try
+            {
+                if (!HasPageAcces(Pages.ViewUsersPage))
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(await _repo.GetUser(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [Route("AllUsers")]
         [Authorize(Roles = "Administrator,Manager")]
         [HttpGet]

@@ -13,6 +13,7 @@ namespace SuccessRecruitment.DataTransferObjects.User
         public string Phone { get; set; }
         public string RoleName { get; set; }
         public bool IsArchived { get; set; }
+        public List<int> RoleIds { get; set; }
     }
     public class RoleDTO
     {
