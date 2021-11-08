@@ -57,10 +57,10 @@ namespace SuccessRecruitment.Services.Auth
                     }
                 }
 
-                List<int> roleIds = validUser.TblUserRoles.Select(x => x.RoleId).ToList();
-                List<int> pageIds = validUser.TblUserPages.Select(x => x.PageId).ToList();
-                List<string> userRoles = await _db.TblUserRoles.Include(x => x.TblRole).Where(x => roleIds.Contains(x.RoleId) && !x.IsArchived).Select(x => x.TblRole.RoleName).ToListAsync();
-                List<string> userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => pageIds.Contains(x.PageId) && !x.IsArchived).Select(x => x.TblPage.PageName).ToListAsync();
+                List<int> roleIds = validUser.TblUserRoles.Where(x=> !x.IsArchived).Select(x => x.RoleId).ToList();
+                List<int> pageIds = validUser.TblUserPages.Where(x => !x.IsArchived).Select(x => x.PageId).ToList();
+                List<string> userRoles = await _db.TblUserRoles.Include(x => x.TblRole).Where(x => roleIds.Contains(x.RoleId) && !x.IsArchived).Select(x => x.TblRole.RoleName).Distinct().ToListAsync();
+                List<string> userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => pageIds.Contains(x.PageId) && !x.IsArchived).Select(x => x.TblPage.PageName).Distinct().ToListAsync();
                 //try to get all these results in 1 query
                 validuserdto validuserdto = new validuserdto();
                 validuserdto.Token = CreateToken(validUser, userRoles, userPages);
@@ -145,7 +145,7 @@ namespace SuccessRecruitment.Services.Auth
                             CreatedDate = DateTime.Now
                         })).Entity);
                     }
-                    List<int> tabs = await _db.TblRolePages.Where(x => roleIds.Contains(x.RoleId)).Select(x => x.PageId).ToListAsync();
+                    List<int> tabs = await _db.TblRolePages.Where(x => roleIds.Contains(x.RoleId) && x.TblPage.IsTab).Select(x => x.PageId).ToListAsync();
                     bool IsExternal = roles.Any(x => x.RoleName == "Recruiter" || x.RoleName == "Candidate");
                     bool hasAddEditprivileges = roles.Any(x => x.RoleName == "Admin" || x.RoleName == "General Manager" || x.RoleName == "Recruiter" || x.RoleName == "Candidate");
                     //By default a new user is not given access to editable pages unless their role is Admin or General Manager
