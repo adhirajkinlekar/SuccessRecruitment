@@ -190,6 +190,7 @@ namespace SuccessRecruitment.Models
                     .HasColumnName("pageName");
 
                 entity.Property(e => e.ParentPageId).HasColumnName("parentPageId");
+                entity.Property(e => e.TabId).HasColumnName("tabId");
 
                 entity.HasOne(d => d.ParentPage)
                     .WithMany(p => p.InverseParentPage)

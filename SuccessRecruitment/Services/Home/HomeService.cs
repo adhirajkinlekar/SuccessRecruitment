@@ -32,7 +32,7 @@ namespace SuccessRecruitment.Services.Home
             {
                 var currentUser = GetUserId();
 
-                var userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => x.UserId == currentUser).ToListAsync();
+                var userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => x.UserId == currentUser && !x.IsArchived).ToListAsync();
 
                 Pages pages = new Pages();
 

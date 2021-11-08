@@ -4,6 +4,8 @@ using SuccessRecruitment.Services.User;
 using System;
 using SuccessRecruitment.Shared.Pages;
 using System.Threading.Tasks;
+using SuccessRecruitment.DataTransferObjects.User;
+using System.Collections.Generic;
 
 namespace SuccessRecruitment.Controllers.Users
 {
@@ -20,7 +22,7 @@ namespace SuccessRecruitment.Controllers.Users
         }
 
         [Route("{id}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator,Manager")]
         [HttpGet]
         public async Task<IActionResult> GetUser(Guid id)
         {
@@ -60,7 +62,7 @@ namespace SuccessRecruitment.Controllers.Users
         }
 
         [Route("Roles")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator,Manager")]
         [HttpGet]
         public async Task<IActionResult> GetRoles()
         {
@@ -72,6 +74,65 @@ namespace SuccessRecruitment.Controllers.Users
                 }
 
                 return Ok(await _repo.GetRoles());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Route("UpdateUser")]
+        [Authorize(Roles = "Administrator,Manager")]
+        [HttpPut]
+        public async Task<IActionResult> UpdateUser(UpdateUserDTO updateUserDTO)
+        {
+            try
+            {
+                if (!HasPageAcces(Pages.ViewUsersPage))
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(await _repo.UpdateUser(updateUserDTO));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Route("{id}/pages")]
+        [Authorize(Roles = "Administrator,Manager")]
+        [HttpGet]
+        public async Task<IActionResult> GetUserPages(Guid id)
+        {
+            try
+            {
+                if (!HasPageAcces(Pages.ViewUsersPage))
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(await _repo.GetUserPages(id));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [Route("{id}/UpdatePages")]
+        [Authorize(Roles = "Administrator,Manager")]
+        [HttpPut]
+        public async Task<IActionResult> UpdateUserPages(Guid id,List<UpdatePagesDTO> updatePages)
+        {
+            try
+            {
+                if (!HasPageAcces(Pages.ViewUsersPage))
+                {
+                    return Unauthorized();
+                }
+
+                return Ok(await _repo.UpdateUserPages(id, updatePages));
             }
             catch (Exception ex)
             {

@@ -17,7 +17,7 @@ namespace SuccessRecruitment.Controllers
             _repo = homeService;
         }
         [HttpGet]
-        [Authorize(Roles = "Administrator,Manager")]
+        [Authorize(Roles = "Administrator,Manager,Recruiter")]
         [Route("")]
         public async Task<IActionResult> GetAppInformation()
         {
