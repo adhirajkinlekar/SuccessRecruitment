@@ -63,6 +63,7 @@ namespace SuccessRecruitment.Services.Auth
                 List<string> userPages = await _db.TblUserPages.Include(x => x.TblPage).Where(x => pageIds.Contains(x.PageId) && !x.IsArchived).Select(x => x.TblPage.PageName).Distinct().ToListAsync();
                 //try to get all these results in 1 query
                 validuserdto validuserdto = new validuserdto();
+                validuserdto.UserId = validUser.UserId;
                 validuserdto.Token = CreateToken(validUser, userRoles, userPages);
                 validuserdto.UserName = validUser.UserName;
                 validuserdto.UserRoles = string.Join("/ ", userRoles);

@@ -212,8 +212,9 @@ namespace SuccessRecruitment.Services.User
                     PageId = x.PageId,
                     PageName = x.TblPage.PageName,
                     IsTab = x.TblPage.IsTab,
-                    TabId = x.TblPage.TabId.HasValue ? x.TblPage.TabId.Value : null,
-                    IsAccessible = x.TblPage.TblUserPages.FirstOrDefault(y => y.UserId == id && !y.IsArchived) != null
+                    TabId = x.TblPage.TabId.Value,
+                    IsAccessible = x.TblPage.TblUserPages.FirstOrDefault(y => y.UserId == id && !y.IsArchived) != null,
+                    ParentPageId = x.TblPage.ParentPageId.Value
                 }).ToListAsync();
 
                 return rolePages;

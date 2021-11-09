@@ -35,6 +35,7 @@ namespace SuccessRecruitment.DataTransferObjects.User
         public bool IsTab { get; set; }
         public int? TabId { get; set; }
         public bool IsAccessible { get; set; }
+        public int? ParentPageId { get; set; }
     }
 
     public class UpdatePagesDTO
