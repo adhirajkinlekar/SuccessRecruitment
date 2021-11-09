@@ -205,7 +205,7 @@ namespace SuccessRecruitment.Services.User
         {
             try
             {
-                var userRoles = await _db.TblUserRoles.Where(x => x.UserId == id).Select(x => x.RoleId).ToListAsync();
+                var userRoles = await _db.TblUserRoles.Where(x => x.UserId == id && !x.IsArchived).Select(x => x.RoleId).ToListAsync();
 
                 var rolePages = await _db.TblRolePages.Where(x => userRoles.Contains(x.RoleId)).Select(x => new UserPagesDTO
                 {
