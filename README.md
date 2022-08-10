@@ -10,7 +10,7 @@ Features :
 - sign in
 - sign out
 - add users
-- edits users
+- edit users
 - assign roles to users to allow or disallow access to pages
 - Add, view, edit jobs
 ![image](https://user-images.githubusercontent.com/59998213/139588737-00af0f04-e62a-499d-b812-7ef4e3521baf.png)
